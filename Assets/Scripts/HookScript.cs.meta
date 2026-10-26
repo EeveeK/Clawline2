@@ -1,0 +1,13 @@
+fileFormatVersion: 2
+guid: 2e9a978cb3194bf4f8452d65de432c81
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - ClawLine: {fileID: 8263814531316985012, guid: 39c5b4e10ccecde478da433abd3579b6, type: 3}
+  - Hornet: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
