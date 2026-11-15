@@ -3,8 +3,11 @@ using UnityEngine.InputSystem;
 
 public class HornetScript : MonoBehaviour
 {
-    public Vector2 moveInput;
-    [SerializeField] private float speed = 5f;
+    public Vector2 moveInput = new Vector2(1,0);
+    public Vector2 lastMoveInput = new Vector2(1, 0);
+
+    public bool isWalking;
+    [SerializeField] private float speed = 8f;
     [SerializeField] private GameObject ClawLine;
 
     ClawlineScript clawlineScript;
@@ -13,13 +16,11 @@ public class HornetScript : MonoBehaviour
 
     private SpriteRenderer spriteRenderer;
 
-    public Vector2 direction;
+    private Animator animator;
 
     Vector2 distance;
 
     public bool clawExists;
-
-    float moveDirection;
     public Vector3 prevPos;
 
     public bool isFlipped;
@@ -46,20 +47,22 @@ public class HornetScript : MonoBehaviour
         
     }
 
-    public void OnMove(InputAction.CallbackContext context)
-    {
-        moveInput = context.ReadValue<Vector2>();
-        Debug.Log("Input received: " + moveInput);
-    }
-
     public void OnClawline(InputAction.CallbackContext context)
     {
 
         if (isHooked) isHooked = false;
             if (context.performed)
         {
-            Instantiate(ClawLine);
-            clawExists = true;
+            if(clawExists == false)
+            {
+                Instantiate(ClawLine);
+                clawExists = true;
+                animator.SetBool("Clawline", true);
+                if (isWalking) 
+                { animator.SetFloat("ClawDir", moveInput.x); } else { animator.SetFloat("ClawDir", lastMoveInput.x); }
+
+            }
+            
         }
     }
 
@@ -69,6 +72,7 @@ public class HornetScript : MonoBehaviour
         clawExists = false;
        gravity = 9.8f;
         isHooked = false;
+        animator = GetComponent<Animator>();
     }
 
     void Awake()
@@ -96,19 +100,33 @@ public class HornetScript : MonoBehaviour
             hornetRb.gravityScale = gravity;
         }
 
-        hornetRb.linearVelocity = new Vector2 (moveDirection * speed, hornetRb.linearVelocity.y);
-
+        hornetRb.linearVelocity = new Vector2(moveInput.x * speed, hornetRb.linearVelocity.y);
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (!clawExists)
+        {
+            animator.SetBool("Clawline", false);
 
-       
+        }
+    }
 
+    public void OnMove(InputAction.CallbackContext context)
+    {        animator.SetBool("isWalking", true);
+        isWalking = true; ;
 
-        moveDirection = moveInput.x;
-        //distance = moveDirection * speed * Time.fixedDeltaTime;
+        if (context.canceled)
+        {
+            animator.SetBool("isWalking", false);
+            animator.SetFloat("LastInputX", moveInput.x);
+            lastMoveInput = moveInput;
+            isWalking = false;
+        }
+
+        moveInput = context.ReadValue<Vector2>();
+        animator.SetFloat("InputX", moveInput.x);
 
     }
 }

@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections;
+using UnityEngine.EventSystems;
 
 public class ClawlineScript : MonoBehaviour
 {
@@ -13,12 +14,18 @@ public class ClawlineScript : MonoBehaviour
 
     private Rigidbody2D hornetRb;
 
+    private SpriteRenderer childSprite;
+
+    bool bouncyThingHit = false;
+
 
 
     float maxDistance = 4f;
 
     bool hitWall = false;
     bool hitHook;
+
+    Vector2 MoveDir;
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
@@ -65,6 +72,13 @@ public class ClawlineScript : MonoBehaviour
 
 
         }
+
+        if (collision.TryGetComponent<IBouncable>(out var bouncy))
+        {
+            bouncyThingHit = true;
+
+
+        }
     }
 
 
@@ -92,11 +106,11 @@ public class ClawlineScript : MonoBehaviour
 
             Vector3 startingHornetPos = Hornet.transform.position;
         float currTime = 0f;
-        float timeOut = 2f;
+        float timeOut = 1f;
 
         if (hitWall)
         {
-            while (Vector2.Distance(hornetRb.position, transform.position) > 0.6f && currTime < timeOut)
+            while (Vector2.Distance(hornetRb.position, transform.position) > 0.2f && currTime < timeOut)
             {
                 moveHornet();
                 currTime += Time.fixedDeltaTime;
@@ -105,8 +119,7 @@ public class ClawlineScript : MonoBehaviour
             }
         } else
         {
-            Vector2 overtakeTarget = (Vector2)transform.position + (Vector2.left * 1.5f);
-            while (Vector2.Distance(hornetRb.position, overtakeTarget) > 0.2f && currTime < timeOut)
+            while (Vector2.Distance(hornetRb.position, (Vector2)transform.position) > 0.2f && currTime < timeOut)
                         {
                             moveHornet();
                         currTime += Time.fixedDeltaTime;
@@ -116,9 +129,17 @@ public class ClawlineScript : MonoBehaviour
             if (hitHook)hornetScript.isHooked = true;
         }
 
+        if (bouncyThingHit)
+        {
+            hornetRb.AddForceY(30f, ForceMode2D.Impulse);
+        }
+
         hornetScript.clawExists = false;
 
-        
+      
+
+
+
 
         Destroy(gameObject);
 
@@ -128,7 +149,7 @@ public class ClawlineScript : MonoBehaviour
     void moveClawline()
     {
         
-           transform.Translate(Vector3.left * Time.fixedDeltaTime * speed);
+           transform.Translate(MoveDir * Time.fixedDeltaTime * speed);
        
         
     }
@@ -136,18 +157,17 @@ public class ClawlineScript : MonoBehaviour
     void moveHornet()
     {
         hornetRb.gravityScale = 0;
-
-        //Hornet.transform.Translate(Vector3.left * Time.fixedDeltaTime * hornetSpeed);
-        Vector2 displacement = (Vector3.left * Time.fixedDeltaTime * hornetSpeed);
+        Vector2 displacement = (MoveDir * Time.fixedDeltaTime * hornetSpeed);
         hornetRb.MovePosition(hornetRb.position + displacement);
         
     }
     void Awake()
     {
         clawlineRb = GetComponent<Rigidbody2D>();
+        childSprite = GetComponentInChildren<SpriteRenderer>();
 
-        
-}
+
+    }
 
     void Start()
     {
@@ -159,6 +179,27 @@ public class ClawlineScript : MonoBehaviour
         hornetRb = Hornet.GetComponent<Rigidbody2D>(); 
         transform.position = hornetRb.position;
             StartCoroutine(ClawlineTravel());
+
+        if (hornetScript.isWalking)
+        {
+            MoveDir = hornetScript.moveInput;
+        } else
+        {
+            MoveDir = hornetScript.lastMoveInput;
+        }
+
+        if (MoveDir.x == 1)
+        {
+            childSprite.flipX = true;
+        }
+
+        if (MoveDir.sqrMagnitude < 0.01f)
+        {
+            MoveDir = Vector2.left;
+        }
+
+
+
 
 
     }

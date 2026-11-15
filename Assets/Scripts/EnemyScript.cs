@@ -1,9 +1,9 @@
 using UnityEngine;
 using System.Collections;
 
-public class EnemyScript : MonoBehaviour, IDamageable,IHittable
+public class EnemyScript : MonoBehaviour, IDamageable,IHittable, IDealDamage, IBouncable
 {
-    [SerializeField] float maxHealth = 50f;
+    [SerializeField] float maxHealth = 10f;
     [SerializeField] float currentHealth;
 
     bool invulnerable = false;
@@ -15,16 +15,14 @@ public class EnemyScript : MonoBehaviour, IDamageable,IHittable
             return;
         }
 
-        if (currentHealth <= 0)
+        currentHealth -= amount;
+        Debug.Log("Took Damage!");
+        StartCoroutine(InvincibilityRoutine());
+
+        if (currentHealth <= 0f)
         {
             Destroy(gameObject);
-        } else
-        {
-            currentHealth -= amount;
-            Debug.Log("Took Damage!");
-            StartCoroutine(InvincibilityRoutine());
-        }
-        
+        } 
         
     }
 
@@ -52,6 +50,21 @@ public class EnemyScript : MonoBehaviour, IDamageable,IHittable
 
     // Update is called once per frame
     void Update()
+    {
+        
+    }
+
+    public void DealDamage(Collider2D collision)
+    {
+        if (collision.TryGetComponent<IDamageable>(out var target))
+        {
+            target.TakeDamage(5f);
+
+
+        }
+    }
+
+    public void Bounce(Collider2D collision)
     {
         
     }
